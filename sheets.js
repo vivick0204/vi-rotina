@@ -2,7 +2,7 @@ const SCOPE='https://www.googleapis.com/auth/drive.file';
 const DRIVE='https://www.googleapis.com/drive/v3/files';
 const SHEETS='https://sheets.googleapis.com/v4/spreadsheets';
 const MARKER='vi-rotina-v3';
-export const TABS=['Estado','Rotina','Conclusoes','Refeicoes','Metas','Financas','Eventos','Progresso'];
+export const TABS=['Estado','Rotina','Conclusoes','Refeicoes','Metas','Financas','Eventos','Progresso','Medicamentos','Agendamentos'];
 const $=id=>document.getElementById(id);
 function gate(show){$('cloudGate').hidden=!show;$('shell').inert=show;document.querySelector('nav').inert=show;}
 export function validateState(value){
@@ -11,6 +11,7 @@ export function validateState(value){
   if(!Array.isArray(value[key])||value[key].length>15000)throw Error('Registros inválidos: '+key);
   for(const item of value[key])if(!item||typeof item!=='object'||!/^[a-zA-Z0-9_-]{1,100}$/.test(item.id||''))throw Error('Identificador inválido no backup.');
  }
+ if(value.appointments!==undefined){if(!Array.isArray(value.appointments)||value.appointments.some(a=>!a||!/^[a-zA-Z0-9_-]{1,100}$/.test(a.id||'')||!['consulta','exame'].includes(a.kind)||!/^\d{4}-\d{2}-\d{2}$/.test(a.date||'')||!/^\d{2}:\d{2}$/.test(a.time||'')))throw Error('Agendamento inválido.');}
  for(const t of value.tasks){if(!Array.isArray(t.days)||t.days.some(d=>!Number.isInteger(d)||d<0||d>6))throw Error('Dias inválidos em uma tarefa.');}
  for(const key of ['tasks','meals','goals','finance'])for(const item of value[key])for(const field of ['name','time','date','kind','type','note','food','origin','deadline','unit'])if(item[field]!=null&&typeof item[field]!=='string')throw Error('Campo inválido: '+field);
  if(!value.checks||Array.isArray(value.checks)||typeof value.checks!=='object')throw Error('Histórico de conclusões inválido.');
@@ -38,7 +39,9 @@ export function tables(data){
  const completions=Object.entries(data.checks).map(([key,at])=>{const [date,id]=key.split('|');const t=plans[date]?.find(t=>t.id===id)||names.get(id);return [date,id,t?.name||'Tarefa removida',t?.kind||'',t?.time||'',at];});
  const progress=Object.entries(plans).sort(([a],[b])=>a.localeCompare(b)).map(([date,plan])=>{const done=plan.filter(t=>data.checks[date+'|'+t.id]).length;return [date,plan.length,done,plan.length-done,plan.length?done/plan.length:0,'Planejamento registrado ao abrir o dia'];});
  return {
- Rotina:[['ID','Nome','Categoria','Horario','Dias (0=domingo)','Dose prescrita','Duracao da pausa (min)','Observacoes'],...data.tasks.map(t=>[t.id,t.name,t.kind,t.time,(t.days||[]).join(','),t.dose||'',t.duration||'',t.note||''])],
+ Rotina:[['ID','Nome','Categoria','Horario','Dias (0=domingo)','Dose prescrita','Duracao da pausa (min)','Observacoes'],...data.tasks.filter(t=>t.kind!=='medicamento').map(t=>[t.id,t.name,t.kind,t.time,(t.days||[]).join(','),t.dose||'',t.duration||'',t.note||''])],
+ Medicamentos:[['ID','Medicamento','Dose prescrita','Horario','Dias (0=domingo)','Orientacoes'],...data.tasks.filter(t=>t.kind==='medicamento').map(t=>[t.id,t.name,t.dose||'',t.time,(t.days||[]).join(','),t.note||''])],
+ Agendamentos:[['ID','Tipo','Descricao','Data','Horario','Duracao (min)','Profissional','Local','Situacao','Observacoes'],...(data.appointments||[]).map(a=>[a.id,a.kind,a.name,a.date,a.time,Number(a.duration||60),a.professional,a.location,a.status,a.note])],
  Conclusoes:[['Data','ID da tarefa','Tarefa','Categoria','Horario previsto','Concluida em (ISO)'],...completions],
  Refeicoes:[['ID','Data','Horario','Refeicao','Origem','Descricao'],...data.meals.map(m=>[m.id,m.date,m.time,m.type,m.origin,m.food])],
  Metas:[['ID','Meta','Unidade','Objetivo','Progresso','Prazo','Descricao'],...data.goals.map(g=>[g.id,g.name,g.unit||'R$',Number(g.target||0),Number(g.current||0),g.deadline,g.note])],

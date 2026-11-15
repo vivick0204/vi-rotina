@@ -25,7 +25,8 @@ jobs:
       - name: Preparar arquivos publicos
         run: |
           mkdir -p dist
-          cp index.html app.js sheets.js config.js .nojekyll dist/
+          cp index.html app.js sheets.js domain.js config.js .nojekyll dist/
+          cp -r assets dist/assets
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

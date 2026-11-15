@@ -6,7 +6,7 @@ Versão preparada para migrar a interface do Vi Rotina para GitHub Pages e usar 
 
 - Código da integração e fluxo de publicação preparados.
 - Testes automatizados de serialização, preservação de histórico, tipos de células, validação de backups, conflito de versões e resposta incerta da API.
-- Publicação na conta GitHub e autenticação/gravação reais no Google ainda precisam de configuração e validação. Não há dados pessoais reais nesta cópia do código.
+- Site publicado no GitHub Pages. A validação de autenticação e gravação com a conta da proprietária é feita pela interface. Não há dados pessoais reais nesta cópia do código.
 
 ## Como o acesso funciona
 
@@ -57,6 +57,8 @@ O app não contorna recusas do Google. Uma origem incorreta, API desativada ou c
 | --- | --- |
 | Estado | Cópia de recuperação e revisão usadas pelo aplicativo. Não editar. |
 | Rotina | Cadastro de tarefas, dias, horários, doses informadas e pausas. |
+| Medicamentos | Cadastro dos medicamentos, doses informadas, horários e orientações. |
+| Agendamentos | Consultas e exames, datas, locais, profissionais e situação. |
 | Conclusoes | Uma linha por tarefa marcada, com data, horário e identificação. |
 | Refeicoes | Data, horário, refeição, origem e descrição. |
 | Metas | Unidade, objetivo, progresso e prazo. |
@@ -85,7 +87,7 @@ Dias em que o aplicativo não foi aberto não têm planejamento registrado e nã
 
 - [ ] Workflow GitHub concluído e URL publicada confirmada.
 - [ ] Login com a conta Google autorizada funciona no Safari do iPhone.
-- [ ] Planilha criada como restrita e com as oito abas do aplicativo.
+- [ ] Planilha criada como restrita e com as dez abas do aplicativo.
 - [ ] Uma tarefa marcada aparece em Conclusoes e Progresso.
 - [ ] Um registro de refeição e um lançamento financeiro aparecem nas abas correspondentes.
 - [ ] Fechar e reabrir o site recupera os dados após nova autorização.
@@ -101,3 +103,19 @@ Documentação oficial:
 - [GitHub Pages e visibilidade](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site)
 - [Google Identity Services: token model](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
 - [Escopos da API Sheets](https://developers.google.com/workspace/sheets/api/scopes)
+
+## Atualização: Rotina e Saúde
+
+A interface usa texto e cores discretas, sem emojis ou mensagens de autocuidado. Medicamentos existentes mantêm seus IDs e histórico, mas aparecem somente na aba **Saúde**, separados da Rotina. Consultas e exames possuem formulário próprio, data, horário, duração, profissional, local, observações e situação.
+
+No primeiro acesso à atualização, o aplicativo inclui Almoço e Jantar diariamente, Academia de segunda a quinta e Missa aos domingos, sem duplicar cadastros com o mesmo nome. Os horários ficam em branco para você definir. As alterações são persistidas na planilha; a atualização não reinsere atividades excluídas posteriormente. O histórico de dias anteriores não é reescrito.
+
+### Google Agenda
+
+Cada consulta ou exame agendado possui o botão **Adicionar ao Google Agenda**. Ele abre o formulário do Google com título, data, horário e local, e você confirma o salvamento. As observações clínicas não são copiadas para a descrição do evento. A duração padrão é de 60 minutos e pode ser editada no cadastro. O horário é interpretado no fuso do dispositivo ao abrir o evento.
+
+Esta etapa não usa a API Calendar e não pede novas permissões Google. Não é uma sincronização automática: editar, cancelar ou excluir no Vi Rotina não altera o evento já salvo no Google, e clicar mais de uma vez pode gerar duplicatas. Uma integração automática futura precisará ativar a Google Calendar API, obter consentimento adicional e conservar o ID de cada evento para atualizações.
+
+### Onde trocar imagens
+
+Envie seus arquivos para **assets/images/** no GitHub e configure os caminhos em **Ajustes → Imagens da interface**. Consulte [assets/images/README.md](assets/images/README.md) para exemplos. O workflow publica essa pasta automaticamente junto do aplicativo.
