@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.env*
+*.backup.json
+vi-rotina-backup-*.json
+.DS_Store
