@@ -33,7 +33,28 @@ function renderHealth(){
 }
 function appointmentDone(id){if(!ready)return;const a=db.appointments.find(a=>a.id===id);if(!a)return;a.status='realizado';db.events ||= [];db.events.push({id:uid(),at:new Date().toISOString(),action:'realizado',entity:'appointment',recordId:id,name:a.name,date:today()});save();}
 function addCalendar(id){if(!ready)return;const a=db.appointments.find(a=>a.id===id);if(!a)return;try{window.open(calendarDraft(a),'_blank','noopener,noreferrer')}catch(e){alert(e.message)}}
-function renderImages(){const images={...(window.VI_CONFIG.images||{}),...(db.images||{})};for(const el of document.querySelectorAll('[data-image-slot]')){const src=images[el.dataset.imageSlot];el.replaceChildren();if(src&&validImagePath(src)){const img=document.createElement('img');img.alt='';img.src=src;img.onerror=()=>img.remove();el.append(img)}}for(const input of document.querySelectorAll('[data-image-input]'))if(document.activeElement!==input)input.value=images[input.dataset.imageInput]||'';}
+function renderImages(){
+ const images={...(window.VI_CONFIG.images||{}),...(db.images||{})};images.logo=db.images?.logo||window.VI_CONFIG.images?.logo||'';
+ for(const el of document.querySelectorAll('[data-image-slot]')){
+  const slot=el.dataset.imageSlot,src=images[slot]||'',brand=slot==='logo'?el.closest('.brand'):null;
+  if(el.dataset.renderedSrc===src)continue;
+  el.dataset.renderedSrc=src;el.replaceChildren();brand?.classList.remove('has-logo');
+  if(!src||!validImagePath(src))continue;
+  const loaded=()=>brand?.classList.add('has-logo');
+  const failed=()=>{el.replaceChildren();brand?.classList.remove('has-logo');delete el.dataset.renderedSrc;};
+  if(slot==='logo'&&src==='assets/images/LOGO.png'){
+   // The uploaded PNG has transparent padding. Crop only its display viewport;
+   // keep the original file and its proportions unchanged.
+   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),img=document.createElementNS(ns,'image');
+   svg.setAttribute('viewBox','437 229 430 183');svg.setAttribute('role','img');svg.setAttribute('aria-label','Vi Rotina');
+   img.setAttribute('href',src);img.setAttribute('width','1366');img.setAttribute('height','768');
+   img.addEventListener('load',loaded);img.addEventListener('error',failed);svg.append(img);el.append(svg);
+  }else{
+   const img=document.createElement('img');img.alt=slot==='logo'?'Vi Rotina':'';img.onload=loaded;img.onerror=failed;img.src=src;el.append(img);
+  }
+ }
+ for(const input of document.querySelectorAll('[data-image-input]'))if(document.activeElement!==input)input.value=images[input.dataset.imageInput]||'';
+}
 function saveImages(e){e.preventDefault();if(!ready)return;const images={};for(const input of e.target.querySelectorAll('[data-image-input]')){const value=input.value.trim();if(!validImagePath(value)){alert('Use um caminho da pasta assets/images, por exemplo assets/images/saude.png.');return}images[input.dataset.imageInput]=value;}db.images=images;save();}
 Object.assign(window,{appointmentDone,addCalendar,saveImages});
 
